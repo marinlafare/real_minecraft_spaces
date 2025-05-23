@@ -1,10 +1,13 @@
 # CUSTOM STUFF
-
+yolo11n.pt
+yolo11x.pt
+protoc-30.2-linux-x86_64.zip
 do_not_commit_this_you_stupid_fuck/*
 extracted_images/*
 block_book/*
-
-
+gap/*
+shape_detection/*
+blocks/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
