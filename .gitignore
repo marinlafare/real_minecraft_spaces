@@ -8,6 +8,8 @@ block_book/*
 gap/*
 shape_detection/*
 blocks/*
+color_dicts/*
+images/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
