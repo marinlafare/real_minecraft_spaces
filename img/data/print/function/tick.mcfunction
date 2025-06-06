@@ -1,1 +1,0 @@
-effect give Quackleb jump_boost 2 12
