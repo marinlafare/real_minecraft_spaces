@@ -1,2 +1,8 @@
 do_not_commit/*
 nono.txt
+#####
+
+.ipynb_checkpoints/*
+
+#####
+
