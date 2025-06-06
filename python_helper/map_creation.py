@@ -8,6 +8,13 @@ import tensorflow as tf
 import nbtlib
 
 
+
+def get_mcid_color_model():
+    mcid_to_rgb = joblib.load('color_dicts/mcid_to_rgb.pkl')
+    colors = np.array(list(mcid_to_rgb.values()))
+    color_model = NearestNeighbors(n_neighbors=1, metric='euclidean')
+    color_model.fit(colors)
+    return color_model, mcid_to_rgb
 def load_image_for_map(image_path, channels: int, mirror_horizontal: bool = False):
     image_bytes = tf.io.read_file(image_path)
     image_tensor = tf.image.decode_image(image_bytes, channels=channels) 
@@ -84,7 +91,7 @@ def create_template_datfile(title="some_data_idk"):
     data_compound['xCenter'] = nbtlib.Int(0)
     data_compound['zCenter'] = nbtlib.Int(0)
 
-    data_compound['colors'] = nbtlib.ByteArray([5] * (128 * 128))
+    #data_compound['colors'] = nbtlib.ByteArray([5] * (128 * 128))
 
     root['data'] = data_compound
     return root
@@ -100,10 +107,14 @@ def get_current_map(world_name,parent):
         return 0
     current_map = max(map_files) + 1
     return current_map
-def create_maps(maps_colors, num_rows_of_maps, num_cols_of_maps, world_name):
+def create_maps(maps_colors,
+                num_rows_of_maps,
+                num_cols_of_maps,
+                world_name,
+                base_image_name):
     current_directory = os.getcwd()
     parent = os.path.dirname(current_directory)
-    base_image_name = os.path.splitext(os.path.basename(image_path))[0]
+    
     n_file = get_current_map(world_name,parent)
     init_map = n_file
 
@@ -152,12 +163,17 @@ def check_world_folder_existence(world_name):
 def map_pipeline(image_path, channels: int, mirror_horizontal: bool = False, world_name: str = None):
     if not check_world_folder_existence(world_name):
         return f"Minecraft_World: {world_name} doesn't exists"
+    base_image_name = os.path.splitext(os.path.basename(image_path))[0]
     image_tensor = load_image_for_map(image_path, channels = 3, mirror_horizontal = False)
     original_image, num_rows_of_maps, num_cols_of_maps = prepare_image_size_to_map(image_tensor)
     image_squares = cut_image_into_128_squares(original_image, num_rows_of_maps, num_cols_of_maps)
     for_predictions = get_img_slices_for_prediction(image_squares, num_rows_of_maps, num_cols_of_maps)
     maps_colors = rgb_to_ints(for_predictions, image_squares, num_rows_of_maps, num_cols_of_maps)
-    init_map, final_map, (num_rows_of_maps, num_cols_of_maps) = create_maps(maps_colors, num_rows_of_maps, num_cols_of_maps, world_name)
+    init_map, final_map, (num_rows_of_maps, num_cols_of_maps) = create_maps(maps_colors,
+                                                                            num_rows_of_maps,
+                                                                            num_cols_of_maps,
+                                                                            world_name,
+                                                                            base_image_name = base_image_name)
     
     return init_map, final_map, (num_rows_of_maps, num_cols_of_maps)
 
@@ -175,14 +191,7 @@ def map_pipeline(image_path, channels: int, mirror_horizontal: bool = False, wor
 
 
 
-# facing_side = {'up':1,'down':6,'south': 2,'north':3,'east':4,'west':5,
-#               'up_z':1,'down_z':6,'south_z': 0,'north_z':2,'east_z':1,'west_z':5}
-# def get_mcid_color_model():
-#     mcid_to_rgb = joblib.load('color_dicts/mcid_to_rgb.pkl')
-#     colors = np.array(list(mcid_to_rgb.values()))
-#     color_model = NearestNeighbors(n_neighbors=1, metric='euclidean')
-#     color_model.fit(colors)
-#     return color_model, mcid_to_rgb
+
 
 # def load_image_for_map(image_path, channels: int, mirror_horizontal: bool = False):
 #     image_bytes = tf.io.read_file(image_path)
