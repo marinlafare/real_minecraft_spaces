@@ -147,4 +147,3 @@ def write_frame_wall(init_map,
         with open(os.path.join(parent,f'{mcfunction_dir}{out_name}_{facing_direction}.mcfunction'), "w") as f:
             for line in mcfunction_lines:
                 f.write(line)
-        print(out_name,' done')

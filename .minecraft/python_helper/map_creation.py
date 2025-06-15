@@ -15,7 +15,7 @@ def get_mcid_color_model():
     color_model = NearestNeighbors(n_neighbors=1, metric='euclidean')
     color_model.fit(colors)
     return color_model, mcid_to_rgb
-def load_image_for_map(image_path, channels: int, mirror_horizontal: bool = False):
+def load_image(image_path, channels: int, mirror_horizontal: bool = False):
     image_bytes = tf.io.read_file(image_path)
     image_tensor = tf.image.decode_image(image_bytes, channels=channels) 
 
@@ -25,7 +25,10 @@ def load_image_for_map(image_path, channels: int, mirror_horizontal: bool = Fals
     int_image = tf.cast(image_tensor, dtype=tf.int32)
     return int_image
 
-
+def resize(image_tensor, new_height, new_width):
+    resized_image = tf.image.resize(image_tensor, ((new_height, new_width)))
+    resized_image = tf.cast(resized_image, dtype=tf.int32)
+    return resized_image
 def prepare_image_size_to_map(image_tensor):
     current_height = image_tensor.shape[0]
     current_width = image_tensor.shape[1] 
@@ -36,8 +39,9 @@ def prepare_image_size_to_map(image_tensor):
     new_height = int(128 * num_rows_of_maps)
     new_width = int(128 * num_cols_of_maps)
 
-    resized_image = tf.image.resize(image_tensor, ((new_height, new_width)))
-    resized_image = tf.cast(resized_image, dtype=tf.int32)
+    # resized_image = tf.image.resize(image_tensor, ((new_height, new_width)))
+    # resized_image = tf.cast(resized_image, dtype=tf.int32)
+    resized_image = resize(image_tensor, new_height, new_width)
     print(f'RESIZE = {num_rows_of_maps} rows, {num_cols_of_maps} columns')
     return resized_image, int(num_rows_of_maps), int(num_cols_of_maps)
 
@@ -164,7 +168,7 @@ def map_pipeline(image_path, channels: int, mirror_horizontal: bool = False, wor
     if not check_world_folder_existence(world_name):
         return f"Minecraft_World: {world_name} doesn't exists"
     base_image_name = os.path.splitext(os.path.basename(image_path))[0]
-    image_tensor = load_image_for_map(image_path, channels = 3, mirror_horizontal = False)
+    image_tensor = load_image(image_path, channels = 3, mirror_horizontal = False)
     original_image, num_rows_of_maps, num_cols_of_maps = prepare_image_size_to_map(image_tensor)
     image_squares = cut_image_into_128_squares(original_image, num_rows_of_maps, num_cols_of_maps)
     for_predictions = get_img_slices_for_prediction(image_squares, num_rows_of_maps, num_cols_of_maps)
